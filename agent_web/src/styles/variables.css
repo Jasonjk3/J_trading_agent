@@ -1,0 +1,132 @@
+:root {
+  /* QuantTrader 2026 — light, calm and precise */
+  --color-bg-base: #F6F8FB;
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8FAFC;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-card: #FFFFFF;
+  --color-bg-hover: #F1F5F9;
+  --color-bg-active: #EFF6FF;
+  --color-bg-input: #FFFFFF;
+  --color-bg-input-focus: #FFFFFF;
+
+  --color-primary: #2563EB;
+  --color-primary-light: #3B82F6;
+  --color-primary-dark: #1D4ED8;
+  --color-primary-glow: rgba(37, 99, 235, 0.12);
+  --color-primary-ghost: #EFF6FF;
+  --color-primary-rgb: 37, 99, 235;
+
+  --color-accent: #2563EB;
+  --color-accent-light: #3B82F6;
+  --color-accent-glow: rgba(37, 99, 235, 0.12);
+
+  --color-profit: #16A34A;
+  --color-profit-light: #22C55E;
+  --color-profit-bg: #F0FDF4;
+  --color-profit-border: #BBF7D0;
+  --color-loss: #DC2626;
+  --color-loss-light: #EF4444;
+  --color-loss-bg: #FEF2F2;
+  --color-loss-border: #FECACA;
+  --color-warning: #D97706;
+  --color-warning-light: #F59E0B;
+  --color-warning-bg: #FFFBEB;
+  --color-warning-border: #FDE68A;
+  --color-info: #2563EB;
+  --color-info-light: #3B82F6;
+  --color-info-bg: #EFF6FF;
+  --color-info-border: #BFDBFE;
+  --color-success: #16A34A;
+  --color-danger: #DC2626;
+
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
+  --color-text-disabled: #94A3B8;
+  --color-text-inverse: #FFFFFF;
+
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
+  --color-border-strong: #CBD5E1;
+  --color-border-active: #93C5FD;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.10);
+  --shadow-xl: 0 20px 44px rgba(15, 23, 42, 0.14);
+  --shadow-glow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  --shadow-glow-strong: 0 0 0 4px rgba(37, 99, 235, 0.14);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-card-hover: 0 8px 22px rgba(15, 23, 42, 0.08);
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+
+  --font-family-base: "PingFang SC", "PingFang TC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 15px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 28px;
+  --font-size-5xl: 32px;
+  --font-size-hero: 36px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  --table-header-bg: #F8FAFC;
+  --table-header-color: #64748B;
+  --table-header-font-size: 12px;
+  --table-header-font-weight: 600;
+  --table-row-height: 48px;
+  --table-cell-padding-x: 16px;
+  --table-cell-padding-y: 12px;
+  --table-border-color: #E2E8F0;
+  --table-row-hover-bg: #F8FAFC;
+  --table-row-stripe-bg: #FBFDFF;
+  --table-radius: 10px;
+
+  /* Legacy aliases intentionally resolve to solid colors: no gradients. */
+  --gradient-primary: #2563EB;
+  --gradient-accent: #2563EB;
+  --gradient-card: #FFFFFF;
+  --gradient-border: #E2E8F0;
+  --gradient-profit: #16A34A;
+  --gradient-loss: #DC2626;
+  --gradient-sidebar: #FFFFFF;
+
+  --transition-fast: 120ms cubic-bezier(0.2, 0, 0, 1);
+  --transition-normal: 180ms cubic-bezier(0.2, 0, 0, 1);
+  --transition-slow: 240ms cubic-bezier(0.2, 0, 0, 1);
+  --transition-bounce: 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal: 1040;
+  --z-popover: 1050;
+  --z-tooltip: 1060;
+}

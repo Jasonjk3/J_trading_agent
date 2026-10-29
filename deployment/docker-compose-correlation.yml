@@ -1,0 +1,27 @@
+version: "3"
+services:
+  sjy_multi_agent_correlation:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    image: ${IMAGE_NAME}:${TAG}
+    container_name: sjy_multi_agent_api
+    labels:
+      elk_key: "elk"
+      namespace_key: "ai"
+      service_name: "sjy_multi_agent_correlation"
+    volumes:
+      - /home/project/sjy-multi-agent:/home/project/sjy-multi-agent
+    environment:
+      - TZ=Asia/Shanghai
+      - PORT=8005
+      - PYTHONPATH=/home/project/sjy-multi-agent
+    command: python3 -m consumers.asin_correlation_analysis
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100M"
+        max-file: "5"
+    ports:
+      - "8005:8005"

@@ -1,0 +1,29 @@
+{
+  "name": "agent-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "test:assistant": "node --test tests/assistant.test.mjs tests/assistantMarkdown.test.mjs"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.6.2",
+    "echarts": "^5.4.3",
+    "element-plus": "^2.4.4",
+    "markdown-it": "15.0.3",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.15",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "@vitejs/plugin-vue": "^5.0.3",
+    "typescript": "~5.4.0",
+    "vite": "^5.0.12",
+    "vue-tsc": "^2.0.6"
+  }
+}
