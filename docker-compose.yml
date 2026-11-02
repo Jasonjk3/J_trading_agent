@@ -1,0 +1,169 @@
+# =============================================================================
+# 生产部署编排：MySQL 8 + FastAPI 后端 + Nginx（Vue3 前端静态站点 + /v1 反向代理）
+#
+# 启动（必须带 --env-file，否则引用 ${...} 的必填校验会直接报错）：
+#   docker compose --env-file deployment/.env.production up -d --build
+#
+# 查看状态 / 日志：
+#   docker compose --env-file deployment/.env.production ps
+#   docker compose --env-file deployment/.env.production logs -f backend
+#
+# 重要：应用内部用 python-dotenv 的 override=True 加载 /app/.env，
+# 所以容器里 /app/.env 的值会覆盖 compose 里 environment 设置的同名变量。
+# 数据库地址请在 deployment/.env.production 中把 MYSQL_HOST 设为 mysql。
+# =============================================================================
+name: agent-trading
+
+services:
+  # ---------------------------------------------------------------- 数据库 ----
+  mysql:
+    image: mysql:8.0
+    container_name: agent-trading-mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+      - --max-connections=500
+    environment:
+      TZ: Asia/Shanghai
+      # 下面四个变量名是 mysql 官方镜像的约定，值全部来自 .env.production
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:?请在 deployment/.env.production 中设置 MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DB:?请在 deployment/.env.production 中设置 MYSQL_DB}"
+      MYSQL_USER: "${MYSQL_USERNAME:?请在 deployment/.env.production 中设置 MYSQL_USERNAME}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:?请在 deployment/.env.production 中设置 MYSQL_PASSWORD}"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    networks:
+      - db-net
+    # 如需从宿主机连数据库调试，取消下面两行（只监听本机回环，不对外暴露）
+    # ports:
+    #   - "127.0.0.1:3307:3306"
+
+  # ------------------------------------------------------------------ Redis ---
+  # 当前默认代码路径不需要 Redis（仅 ENABLE_PIPELINE=true 的消息管道会用到）。
+  # 保持运行几乎无开销；不想用可以整段删除，同时删掉 backend 的 depends_on 引用。
+  redis:
+    image: redis:7-alpine
+    container_name: agent-trading-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks:
+      - db-net
+
+  # ------------------------------------------------------------------ 后端 ----
+  backend:
+    build:
+      context: .
+      dockerfile: deployment/backend.Dockerfile
+      args:
+        PIP_INDEX_URL: "${PIP_INDEX_URL:-https://pypi.org/simple}"
+    image: agent-trading-backend:latest
+    container_name: agent-trading-backend
+    restart: unless-stopped
+    env_file:
+      - ./deployment/.env.production
+    environment:
+      TZ: Asia/Shanghai
+      PYTHONUNBUFFERED: "1"
+      # 首次部署时建表；已建表后重复执行也是幂等的（可用 false 关闭）
+      INIT_DB: "${INIT_DB:-true}"
+      # 单进程：消息面采集 / 交易调度等后台任务都在进程内跑，多 worker 会重复执行
+      WEB_CONCURRENCY: "1"
+    volumes:
+      # 应用会读取 /app/.env（override=True），因此这里挂载同一份配置文件；
+      # create_host_path: false 让配置文件缺失时直接报错，而不是被创建成空目录
+      - type: bind
+        source: ./deployment/.env.production
+        target: /app/.env
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      # 仅绑定宿主机回环，方便本机 curl 调试；对外只暴露前端 80 端口
+      - "127.0.0.1:${BACKEND_PORT:-5005}:5005"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "import urllib.request,sys;
+          sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:5005/openapi.json', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - db-net
+      - edge-net
+
+  # ------------------------------------------------------------------ 前端 ----
+  frontend:
+    build:
+      context: .
+      dockerfile: deployment/frontend.Dockerfile
+      args:
+        NPM_REGISTRY: "${NPM_REGISTRY:-https://registry.npmjs.org}"
+        # 留空 = 与页面同源，由 nginx 把 /v1 反代到 backend；
+        # 若前后端分离到不同域名，填后端完整地址（如 https://api.example.com），
+        # 并确保后端 CORS 与 HTTPS 配置正确
+        VITE_API_BASE_URL: "${VITE_API_BASE_URL:-}"
+    image: agent-trading-frontend:latest
+    container_name: agent-trading-frontend
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "${WEB_PORT:-80}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+    networks:
+      - edge-net
+
+volumes:
+  mysql-data:
+    name: agent-trading-mysql-data
+  redis-data:
+    name: agent-trading-redis-data
+
+networks:
+  db-net:
+    name: agent-trading-db-net
+  edge-net:
+    name: agent-trading-edge-net

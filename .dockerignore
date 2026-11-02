@@ -1,0 +1,45 @@
+# =============================================================================
+# Docker 构建上下文忽略清单（构建上下文为仓库根目录）
+# 目的：缩小上下文、加快构建，并确保任何密钥文件都不会被打进镜像
+# =============================================================================
+
+# 版本控制 / 编辑器
+.git
+.gitignore
+.idea
+.vscode
+.cursor
+.history
+.codex-tmp
+
+# Python 缓存与虚拟环境
+**/__pycache__
+**/*.py[cod]
+**/*.so
+.venv
+venv
+env
+.pytest_cache
+.mypy_cache
+.coverage
+
+# 前端依赖与产物（镜像内重新安装 / 构建）
+agent_web/node_modules
+agent_web/dist
+agent_web/*.log
+agent_web/*.tsbuildinfo
+
+# 环境变量文件：一律不进镜像，运行时由 compose 注入或挂载
+.env
+.env.*
+agent_web/.env
+agent_web/.env.*
+deployment/.env
+deployment/.env.*
+
+# 文档与临时产物
+doc
+tmp-*
+*.md
+Dockerfile
+docker-compose.yml
