@@ -9,6 +9,8 @@
 
 | 文件 | 作用 |
 | --- | --- |
+| `deploy.sh` | **一键部署脚本**：生成配置 / 构建 / 启动 / 等健康检查 / 建管理员 / 备份 |
+| `deployment/pack.ps1` | 本地（Windows）一键打包成 tar.gz，供无法访问 GitHub 时上传服务器 |
 | `docker-compose.yml` | 编排：mysql / redis / backend / frontend |
 | `deployment/backend.Dockerfile` | 后端镜像（Python 3.11 + Uvicorn） |
 | `deployment/frontend.Dockerfile` | 前端镜像（Node 构建 → Nginx 托管） |
@@ -22,6 +24,41 @@
 > `pip.conf` / Poetry 配置，端口也不一致），**不要使用**，保留仅作参考。
 > 另外 `deployment/.env` 里存在历史项目的真实数据库口令与 API Key，
 > 若这份代码进过仓库或共享过，请立即轮换这些密钥。
+
+---
+
+## 1.1 最快路径（3 条命令）
+
+**情况 A：服务器能访问 GitHub**
+
+```bash
+git clone <仓库地址> /opt/agent_trading && cd /opt/agent_trading
+bash deploy.sh init     # 自动生成 .env.production 并填充随机密钥，提示还需填哪些
+vi deployment/.env.production   # 只填 LLM / 飞书 / OKX 的 key（约 1 分钟）
+bash deploy.sh          # 构建 + 启动 + 等健康 + 建管理员，一条命令到底
+```
+
+**情况 B：服务器连不上 GitHub（就像你推送时的情况）——不用 git，直接传包**
+
+```powershell
+# 本地 Windows，一条命令打包（自动排除 .git / node_modules / dist / .env 等）
+.\deployment\pack.ps1
+# 按屏幕提示执行 scp，例如：
+scp "...\agent-trading-20261102-1541.tar.gz" user@服务器IP:/opt/
+```
+
+```bash
+# 服务器上，两条命令
+mkdir -p /opt/agent_trading && tar -xzf /opt/agent-trading-*.tar.gz -C /opt/agent_trading
+cd /opt/agent_trading && bash deploy.sh init && vi deployment/.env.production && bash deploy.sh
+```
+
+`deploy.sh` 支持：`init | up(默认) | update | admin | ps | logs | backup | down | config`，
+没有参数时等价于 `up`（完整构建+启动）。
+
+**提速提示**：国内服务器先在 `.env.production` 里把 `PIP_INDEX_URL` 改成
+`https://mirrors.aliyun.com/pypi/simple/`、`NPM_REGISTRY` 改成 `https://registry.npmmirror.com`，
+后端镜像构建时间通常能从 10 分钟级降到 2-4 分钟。
 
 ---
 
